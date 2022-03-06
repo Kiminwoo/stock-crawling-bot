@@ -19,7 +19,7 @@ def makeFrom(sender,receiver,title,content,filename):
 
   # 첨부파일 추가
   part = MIMEBase('application', "octet-stream")
-  with open("C:/Users/welgram-Inwoo/Desktop/네이버_증권_크롤링/2022-03-06.xlsx", 'rb') as file:
+  with open("C:/Users/welgram-Inwoo/Desktop/네이버_증권_크롤링/"+filename, 'rb') as file:
     part.set_payload(file.read())
   encoders.encode_base64(part)
   part.add_header('Content-Disposition', "attachment", filename=filename+".xlsx")
