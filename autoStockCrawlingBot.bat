@@ -1,0 +1,1 @@
+python naver-stock-bot.py

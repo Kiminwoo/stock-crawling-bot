@@ -184,7 +184,7 @@ def crawlBot():
 
 if __name__ == '__main__':
   reveiver_email = 'leekh916@hanmail.net'
-  title = "[알림] 네이버 주식 크롤링 봇 정보 수집 완료 test [" + str(dt_now.date()) +"]"
+  title = "[알림] 네이버 주식 크롤링 봇 정보 수집 완료 [" + str(dt_now.date()) +"]"
   if(crawlBot()):
     try:
       email_result = send(reveiver_email,title,str(dt_now.date()))
