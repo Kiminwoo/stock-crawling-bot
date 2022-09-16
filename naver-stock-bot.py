@@ -8,7 +8,7 @@ from selenium.common.exceptions import NoSuchElementException
 import chromedriver_autoinstaller
 import os
 import time
-
+from selenium.webdriver.common.by import By
 from emailSMTP import send
 
 dt_now = datetime.datetime.now()
@@ -30,8 +30,7 @@ def skipList(content):
 def pagingMove(page, driver, cssSelect):
   for pageListCount in cssSelect:
     if (page in (11, 21, 31)):
-      driver.find_element_by_css_selector(
-        "#contentarea > div.box_type_l > table.Nnavi > tbody > tr > td.pgR > a").click()
+      driver.find_element(By.CSS_SELECTOR,"#contentarea > div.box_type_l > table.Nnavi > tbody > tr > td.pgR > a").click()
       break
     else:
       if (skipList(pageListCount.text.replace(" ", ""))):
@@ -44,23 +43,24 @@ def pagingMove(page, driver, cssSelect):
 # topList 초기화
 def topListReset(cssSelect):
   for list in cssSelect:
-    tdList = list.find_elements_by_tag_name("td")
-  for inputTag in tdList:
-    try:
-      if (inputTag.find_element_by_tag_name("input").get_attribute('checked')):
-        inputTag.find_element_by_tag_name("input").click()
-    except NoSuchElementException:
-      print("No such")
+    tdList = list.find_elements(By.TAG_NAME,"td")
+
+    for inputTag in tdList:
+      try:
+        if (inputTag.find_element(By.TAG_NAME,"input").get_attribute('checked')):
+          inputTag.find_element(By.TAG_NAME,"input").click()
+      except NoSuchElementException:
+        print("No such")
 
 
 # 검색조건 변경
 def search(cssSelect):
   for list in cssSelect:
-    tdList = list.find_elements_by_tag_name("td")
+    tdList = list.find_elements(By.TAG_NAME,"td")
   for inputTag in tdList:
     try:
       if (inputTag.text in selectList):
-        inputTag.find_element_by_tag_name("input").click()
+        inputTag.find_element(By.TAG_NAME,"input").click()
     except NoSuchElementException:
       print("No such")
 
@@ -111,8 +111,7 @@ def crawlBot():
     driver.get(
       f"https://finance.naver.com/sise/sise_market_sum.nhn?sosok={code}&page=1")
 
-    topList = driver.find_elements_by_css_selector(
-      "#contentarea_left > div.box_type_m > form > div > div > table > tbody > tr")
+    topList = driver.find_elements(By.CSS_SELECTOR,"#contentarea_left > div.box_type_m > form > div > div > table > tbody > tr")
 
     # topList 초기화
     topListReset(topList)
@@ -121,15 +120,14 @@ def crawlBot():
     search(topList)
 
     # 검색조건 서치
-    driver.find_element_by_css_selector(
-      "#contentarea_left > div.box_type_m > form > div > div > div > a:nth-child(1) > img").click()
+    driver.find_element(By.CSS_SELECTOR,"#contentarea_left > div.box_type_m > form > div > div > div > a:nth-child(1) > img").click()
+
     time.sleep(3)
 
     for page in range(1, 36):
 
       # 페이징 이동
-      pageList = driver.find_elements_by_css_selector(
-        "#contentarea > div.box_type_l > table.Nnavi > tbody > tr > td")
+      pageList = driver.find_elements(By.CSS_SELECTOR,"#contentarea > div.box_type_l > table.Nnavi > tbody > tr > td")
       pagingMove(page, driver, pageList)
 
       # 2. 데이터 호출
@@ -226,3 +224,4 @@ if __name__ == '__main__':
         print("이메일발송 : " + str(email_result))
       except Exception as e:
         print(e)
+
