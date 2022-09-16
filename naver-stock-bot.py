@@ -16,7 +16,13 @@ dt_now = datetime.datetime.now()
 selectList = ["거래량", "시가총액(억)", "PER(배)", "자산총계(억)", "부채총계(억)", "PBR(배)"]
 
 
-# 페이징 스킵 함수
+"""
+ 페이지 스킵 함수입니다.
+  Args : 
+    content (string) : 하단 페이지 이동 텍스트 
+  Return : 
+    {boolean} 
+"""
 def skipList(content):
   skipContentList = ["맨앞", "다음", "맨뒤", "이전"]
 
@@ -26,7 +32,14 @@ def skipList(content):
     return True
 
 
-# 페이징 이동 함수
+
+"""
+ 현재 페이지 페이징 함수입니다.
+  Args : 
+    page (int) : 현재 페이지 
+    driver (driver) : 현재 드라이버
+    cssSelect (elements) : 페이지 요소's
+"""
 def pagingMove(page, driver, cssSelect):
   for pageListCount in cssSelect:
     if (page in (11, 21, 31)):
@@ -40,7 +53,13 @@ def pagingMove(page, driver, cssSelect):
           break
 
 
-# topList 초기화
+
+"""
+ 상단 검색조건 찾는 함수 입니다.
+  Args : 
+    cssSelect (elements) : 상단 검색 요소's
+ 
+"""
 def topListReset(cssSelect):
   for list in cssSelect:
     tdList = list.find_elements(By.TAG_NAME,"td")
@@ -52,8 +71,12 @@ def topListReset(cssSelect):
       except NoSuchElementException:
         print("No such")
 
-
-# 검색조건 변경
+"""
+ 검색조건 변경 함수 입니다.
+  Args : 
+    cssSelect (elements) : 검색 요소's
+ 
+"""
 def search(cssSelect):
   for list in cssSelect:
     tdList = list.find_elements(By.TAG_NAME,"td")
@@ -64,6 +87,10 @@ def search(cssSelect):
     except NoSuchElementException:
       print("No such")
 
+"""
+ 크롤링봇 함수 입니다.
+ 
+"""
 
 def crawlBot():
   marketType = {
@@ -200,8 +227,13 @@ def crawlBot():
   return True
 
 
-def chkDriver():
+"""
+ 크롬드라이버 버전 체크 함수입니다.
+  Retruns:
+    {boolean}
+"""
 
+def chkDriver():
   # Check if chrome driver is installed or not
   chrome_ver = chromedriver_autoinstaller.get_chrome_version().split('.')[0]
   driver_path = f'./{chrome_ver}/chromedriver.exe'
@@ -214,14 +246,31 @@ def chkDriver():
     chromedriver_autoinstaller.install(True)
     return False
 
+"""
+ 크롤링 실행 메인 함수입니다.
+ 
+"""
+def excuteCraw():
+  if(chkDriver()):
+    try:
+      if (crawlBot()):
+        try:
+          email_result = send(reveiver_email, title, str(dt_now.date()))
+          print("이메일발송 : " + str(email_result))
+        except Exception as e:
+          print(e)
+    except Exception as e :
+      print(e)
+
 if __name__ == '__main__':
   reveiver_email = 'leekh916@hanmail.net'
   title = "[알림] 네이버 주식 크롤링 봇 정보 수집 완료 [" + str(dt_now.date()) + "]"
-  if(chkDriver()):
-    if (crawlBot()):
-      try:
-        email_result = send(reveiver_email, title, str(dt_now.date()))
-        print("이메일발송 : " + str(email_result))
-      except Exception as e:
-        print(e)
+  try:
+    excuteCraw()
+  except Exception as e :
+    print(e)
+    print("한번만더 실행합니다")
+    excuteCraw()
+
+
 
