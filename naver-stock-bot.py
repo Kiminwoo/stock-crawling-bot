@@ -10,6 +10,8 @@ import os
 import time
 from selenium.webdriver.common.by import By
 from emailSMTP import send
+from discordwebhook import Discord
+import datetime
 
 dt_now = datetime.datetime.now()
 
@@ -98,6 +100,17 @@ def crawlBot():
     "KOSDAQ": "1",
   }
 
+  # 코스피 상품 객체 리스트 
+  rankKospiList = []
+  
+  #  코스닥 상품 객체 리스트 
+  rankKosdaqList = []
+
+  class product:
+    def __init__(self, rank, name):
+      self.rank = rank
+      self.name = name
+
   # KOSPI + KOSDAQ
   for market, code in marketType.items():
     if (market == "KOSPI"):
@@ -151,7 +164,7 @@ def crawlBot():
 
     time.sleep(3)
 
-    for page in range(1, 36):
+    for page in range(1, 2):
 
       # 페이징 이동
       pageList = driver.find_elements(By.CSS_SELECTOR,"#contentarea > div.box_type_l > table.Nnavi > tbody > tr > td")
@@ -166,8 +179,21 @@ def crawlBot():
         "#contentarea > div.box_type_l > table.type_2 > tbody > tr")
       for stockContent in stockContents:
         try:
+          
           objRank = stockContent.select_one("td.no").text  # 순위
           objName = stockContent.select_one("td:nth-child(2) >a").text  # 종목명
+
+          # 1 ~ 3위만 추출 
+          if(int(objRank) < 4) :
+            # 코스피일 경우 
+            if(market == "KOSPI") :
+              rankKospi = product(objRank,objName)
+              rankKospiList.append(rankKospi)
+            else :# 코스닥일 경우 
+
+              rankKosdaq = product(objRank,objName)
+              rankKosdaqList.append(rankKosdaq)
+            
           objCurrentPrice = stockContent.select_one(
             "td:nth-child(3)").text  # 현재가
           objFullTime = stockContent.select_one(
@@ -224,6 +250,9 @@ def crawlBot():
       dt_now.date()) + ".xlsx")
     driver.close()
 
+  
+  sendDiscord(rankKospiList,rankKosdaqList)
+  
   return True
 
 
@@ -245,6 +274,48 @@ def chkDriver():
     print(f"최신크롬 버전을 다운받습니다 (ver: {chrome_ver})")
     chromedriver_autoinstaller.install(True)
     return False
+
+
+"""
+ 디스코드에 알림 함수 
+  Args : 
+    rankKospiList (objecList) : 코스피 상품 객체 리스트
+    rankKosdaqList (objectList) : 코스닥 상품 객체 리스트 
+ 
+"""
+
+def sendDiscord(rankKospiList,rankKosdaqList):
+
+    discord = Discord(url="")
+
+    discord.post(
+        embeds= [
+            {
+                "author" :{
+                    "name" : "naver-stock-bot" , 
+                    "icon_url" : "https://picsum.photos/400/300"
+                }  , 
+                "title" : "오늘의 네이버 주식 현황 [ "+str(dt_now.date())+" ]" , 
+                "fields": [
+                    {"name": "kospi 1등", "value": rankKospiList[0].name, "inline": True},
+                    {"name": "kospi 2등", "value": rankKospiList[1].name, "inline": True},
+                    {"name": "kospi 3등", "value": rankKospiList[2].name, "inline": True},
+
+                    {"name": "kosdaq 1등", "value": rankKosdaqList[0].name, "inline": True},
+                    {"name": "kosdaq 2등", "value": rankKosdaqList[1].name, "inline": True},
+                    {"name": "kosdaq 3등", "value": rankKosdaqList[2].name, "inline": True},
+
+                ],
+            }
+        ],
+    )
+
+    discord.post(
+        file={
+            "file1" : open("C:/Users/welgram-Inwoo/Desktop/네이버_증권_크롤링/"+str(dt_now.date())+".xlsx","rb"),
+        }
+    )
+
 
 """
  크롤링 실행 메인 함수입니다.
