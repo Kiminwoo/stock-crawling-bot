@@ -105,6 +105,7 @@ def crawlBot():
   #  코스닥 상품 객체 리스트 
   rankKosdaqList = []
 
+  # 주식종목 클래스
   class product:
     def __init__(self, rank, name,currentPrice,fullTime,flucTuationRate,faceValue,cap,totalAssets,totalDebt,operatingProfit,per,pbr):
       self.rank = rank
@@ -244,7 +245,7 @@ def crawlBot():
       dt_now.date()) + ".xlsx")
     driver.close()
 
-  
+  # 디스코드에 알림 전송
   sendDiscord(rankKospiList,rankKosdaqList)
   
   return True
