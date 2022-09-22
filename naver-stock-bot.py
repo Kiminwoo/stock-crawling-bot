@@ -164,7 +164,7 @@ def crawlBot():
 
     time.sleep(3)
 
-    for page in range(1, 2):
+    for page in range(1, 36):
 
       # 페이징 이동
       pageList = driver.find_elements(By.CSS_SELECTOR,"#contentarea > div.box_type_l > table.Nnavi > tbody > tr > td")
