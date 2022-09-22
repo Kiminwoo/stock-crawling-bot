@@ -107,9 +107,19 @@ def crawlBot():
   rankKosdaqList = []
 
   class product:
-    def __init__(self, rank, name):
+    def __init__(self, rank, name,currentPrice,fullTime,flucTuationRate,faceValue,cap,totalAssets,totalDebt,operatingProfit,per,pbr):
       self.rank = rank
       self.name = name
+      self.currentPrice = currentPrice
+      self.fullTime = fullTime
+      self.flucTuationRate = flucTuationRate
+      self.faceValue = faceValue
+      self.cap = cap
+      self.totalAssets = totalAssets
+      self.totalDebt = totalDebt
+      self.operatingProfit = operatingProfit
+      self.per = per
+      self.pbr = pbr
 
   # KOSPI + KOSDAQ
   for market, code in marketType.items():
@@ -164,7 +174,7 @@ def crawlBot():
 
     time.sleep(3)
 
-    for page in range(1, 36):
+    for page in range(1, 2):
 
       # 페이징 이동
       pageList = driver.find_elements(By.CSS_SELECTOR,"#contentarea > div.box_type_l > table.Nnavi > tbody > tr > td")
@@ -181,19 +191,8 @@ def crawlBot():
         try:
           
           objRank = stockContent.select_one("td.no").text  # 순위
-          objName = stockContent.select_one("td:nth-child(2) >a").text  # 종목명
+          objName = stockContent.select_one("td:nth-child(2) >a").text  # 종목명            
 
-          # 1 ~ 3위만 추출 
-          if(int(objRank) < 4) :
-            # 코스피일 경우 
-            if(market == "KOSPI") :
-              rankKospi = product(objRank,objName)
-              rankKospiList.append(rankKospi)
-            else :# 코스닥일 경우 
-
-              rankKosdaq = product(objRank,objName)
-              rankKosdaqList.append(rankKosdaq)
-            
           objCurrentPrice = stockContent.select_one(
             "td:nth-child(3)").text  # 현재가
           objFullTime = stockContent.select_one(
@@ -210,21 +209,17 @@ def crawlBot():
           objPer = stockContent.select_one("td:nth-child(11)").text  # PER
           objPbr = stockContent.select_one("td:nth-child(12)").text  # PBR
 
-          #  시가총액 / 영업이익
-          # additionalFormulaOne = float(objCap.replace(',','')) / float(objOperatingProfit.replace(',','')) if (objCap != "N/A" and objOperatingProfit != "N/A") else "N/A"
-          # #  자산총계 - 부채총계 = 순자산
-          # additionalFormulaTwo = float(objTotalAssets.replace(',','')) / float(objTotalDebt.replace(',','')) if (objTotalAssets != "N/A" and objTotalDebt != "N/A") else "N/A"
-          # #  시가총액 / 순자산
-          # additionalFormulaThree = float(objCap.replace(',','')) / float(additionalFormulaTwo.replace(',','')) if (objCap != "N/A" and additionalFormulaTwo != "N/A") else "N/A"
-          # print("additionalFormulaOne :: " + additionalFormulaOne)
-          # print("additionalFormulaTwo :: " + additionalFormulaTwo)
-          # print("additionalFormulaThree :: " + additionalFormulaThree)
+          # 1 ~ 3위만 추출 
+          if(int(objRank) < 4) :
+            # 코스피일 경우 
+            if(market == "KOSPI") :
 
-          # if(objPer == "N/A" or objPbr == "N/A"): # PER or PBR N/A일 경우 해당 종목 스킵
-          #   objRankCount == 0
-          #   continue
-          # else:
-          #   objRankCount == 1
+              rankKospi = product(objRank,objName,objCurrentPrice,objFullTime,objFluctuationRate,objFaceValue,objCap,objTotalAssets,objTotalDebt,objOperatingProfit,objPer,objPbr)
+              rankKospiList.append(rankKospi)
+            else :# 코스닥일 경우 
+
+              rankKosdaq = product(objRank,objName,objCurrentPrice,objFullTime,objFluctuationRate,objFaceValue,objCap,objTotalAssets,objTotalDebt,objOperatingProfit,objPer,objPbr)
+              rankKosdaqList.append(rankKosdaq)
 
           ws['A' + str(int(objRank) + objRankCount)] = objRank
           ws['B' + str(int(objRank) + objRankCount)] = objName
@@ -296,17 +291,122 @@ def sendDiscord(rankKospiList,rankKosdaqList):
                     "icon_url" : "https://picsum.photos/400/300"
                 }  , 
                 "title" : "오늘의 네이버 주식 현황 [ "+str(dt_now.date())+" ]" , 
+                "color": 0,
+            } , 
+
+
+            { 
+              "title" : "코스피 [ 1등 ] : " +rankKospiList[0].name , 
+              "color" : 1127128,
+              "fields": [
+                    {"name": "현재가", "value": rankKospiList[0].currentPrice, "inline": True},
+                    {"name": "전일비", "value": rankKospiList[0].fullTime, "inline": True},
+                    {"name": "등락률", "value": rankKospiList[0].flucTuationRate, "inline": True},
+
+                    {"name": "액면가", "value": rankKospiList[0].faceValue, "inline": True},
+                    {"name": "시가총액", "value": rankKospiList[0].cap, "inline": True},
+                    {"name": "자산총계", "value": rankKospiList[0].totalAssets, "inline": True},
+                    {"name": "부채총계", "value": rankKospiList[0].totalDebt, "inline": True},
+                    {"name": "영업이익", "value": rankKospiList[0].operatingProfit, "inline": True},
+                    {"name": "PER", "value": rankKospiList[0].per, "inline": True},
+                    {"name": "PBR", "value": rankKospiList[0].pbr, "inline": True},
+                ]
+            } , 
+
+
+            { 
+              "title" : "코스피 [ 2등 ] : " +rankKospiList[1].name , 
+              "color" : 1127128,
+              "fields": [
+                    {"name": "현재가", "value": rankKospiList[1].currentPrice, "inline": True},
+                    {"name": "전일비", "value": rankKospiList[1].fullTime, "inline": True},
+                    {"name": "등락률", "value": rankKospiList[1].flucTuationRate, "inline": True},
+
+                    {"name": "액면가", "value": rankKospiList[1].faceValue, "inline": True},
+                    {"name": "시가총액", "value": rankKospiList[1].cap, "inline": True},
+                    {"name": "자산총계", "value": rankKospiList[1].totalAssets, "inline": True},
+                    {"name": "부채총계", "value": rankKospiList[1].totalDebt, "inline": True},
+                    {"name": "영업이익", "value": rankKospiList[1].operatingProfit, "inline": True},
+                    {"name": "PER", "value": rankKospiList[1].per, "inline": True},
+                    {"name": "PBR", "value": rankKospiList[1].pbr, "inline": True},
+                ]
+            } , 
+
+
+            {
+                "title" : "코스피 [ 3등 ] : " +rankKospiList[2].name , 
+                "color" : 1127128,
                 "fields": [
-                    {"name": "kospi 1등", "value": rankKospiList[0].name, "inline": True},
-                    {"name": "kospi 2등", "value": rankKospiList[1].name, "inline": True},
-                    {"name": "kospi 3등", "value": rankKospiList[2].name, "inline": True},
+                    {"name": "현재가", "value": rankKospiList[2].currentPrice, "inline": True},
+                    {"name": "전일비", "value": rankKospiList[2].fullTime, "inline": True},
+                    {"name": "등락률", "value": rankKospiList[2].flucTuationRate, "inline": True},
 
-                    {"name": "kosdaq 1등", "value": rankKosdaqList[0].name, "inline": True},
-                    {"name": "kosdaq 2등", "value": rankKosdaqList[1].name, "inline": True},
-                    {"name": "kosdaq 3등", "value": rankKosdaqList[2].name, "inline": True},
+                    {"name": "액면가", "value": rankKospiList[2].faceValue, "inline": True},
+                    {"name": "시가총액", "value": rankKospiList[2].cap, "inline": True},
+                    {"name": "자산총계", "value": rankKospiList[2].totalAssets, "inline": True},
+                    {"name": "부채총계", "value": rankKospiList[2].totalDebt, "inline": True},
+                    {"name": "영업이익", "value": rankKospiList[2].operatingProfit, "inline": True},
+                    {"name": "PER", "value": rankKospiList[2].per, "inline": True},
+                    {"name": "PBR", "value": rankKospiList[2].pbr, "inline": True},
+                ]
+            } , 
 
-                ],
-            }
+
+            { 
+              "title" : "코스닥 [ 1등 ] : " +rankKosdaqList[0].name , 
+              "color" : 14177041,
+              "fields": [
+                    {"name": "현재가", "value": rankKosdaqList[0].currentPrice, "inline": True},
+                    {"name": "전일비", "value": rankKosdaqList[0].fullTime, "inline": True},
+                    {"name": "등락률", "value": rankKosdaqList[0].flucTuationRate, "inline": True},
+
+                    {"name": "액면가", "value": rankKosdaqList[0].faceValue, "inline": True},
+                    {"name": "시가총액", "value": rankKosdaqList[0].cap, "inline": True},
+                    {"name": "자산총계", "value": rankKosdaqList[0].totalAssets, "inline": True},
+                    {"name": "부채총계", "value": rankKospiList[0].totalDebt, "inline": True},
+                    {"name": "영업이익", "value": rankKosdaqList[0].operatingProfit, "inline": True},
+                    {"name": "PER", "value": rankKosdaqList[0].per, "inline": True},
+                    {"name": "PBR", "value": rankKosdaqList[0].pbr, "inline": True},
+                ]
+            } , 
+
+
+            { 
+              "title" : "코스닥 [ 2등 ] : " +rankKosdaqList[1].name , 
+              "color" : 14177041,
+              "fields": [
+                    {"name": "현재가", "value": rankKosdaqList[1].currentPrice, "inline": True},
+                    {"name": "전일비", "value": rankKosdaqList[1].fullTime, "inline": True},
+                    {"name": "등락률", "value": rankKosdaqList[1].flucTuationRate, "inline": True},
+
+                    {"name": "액면가", "value": rankKosdaqList[1].faceValue, "inline": True},
+                    {"name": "시가총액", "value": rankKosdaqList[1].cap, "inline": True},
+                    {"name": "자산총계", "value": rankKosdaqList[1].totalAssets, "inline": True},
+                    {"name": "부채총계", "value": rankKosdaqList[1].totalDebt, "inline": True},
+                    {"name": "영업이익", "value": rankKosdaqList[1].operatingProfit, "inline": True},
+                    {"name": "PER", "value": rankKosdaqList[1].per, "inline": True},
+                    {"name": "PBR", "value": rankKosdaqList[1].pbr, "inline": True},
+                ]
+            } , 
+
+
+            {
+                "title" : "코스닥 [ 3등 ] : " +rankKosdaqList[2].name , 
+                "color" : 14177041,
+                "fields": [
+                    {"name": "현재가", "value": rankKosdaqList[2].currentPrice, "inline": True},
+                    {"name": "전일비", "value": rankKosdaqList[2].fullTime, "inline": True},
+                    {"name": "등락률", "value": rankKosdaqList[2].flucTuationRate, "inline": True},
+
+                    {"name": "액면가", "value": rankKosdaqList[2].faceValue, "inline": True},
+                    {"name": "시가총액", "value": rankKosdaqList[2].cap, "inline": True},
+                    {"name": "자산총계", "value": rankKosdaqList[2].totalAssets, "inline": True},
+                    {"name": "부채총계", "value": rankKosdaqList[2].totalDebt, "inline": True},
+                    {"name": "영업이익", "value": rankKosdaqList[2].operatingProfit, "inline": True},
+                    {"name": "PER", "value": rankKosdaqList[2].per, "inline": True},
+                    {"name": "PBR", "value": rankKosdaqList[2].pbr, "inline": True},
+                ]
+            } 
         ],
     )
 
