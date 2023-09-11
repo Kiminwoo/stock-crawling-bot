@@ -57,7 +57,7 @@ def pagingMove(page, driver, cssSelect):
 def crawlBot():
 
   inputType = {
-    "원금균등": "50년",
+    "원리금균등": "50년",
   }
 
   # 상환방법 ( 상환기간 ) ;
