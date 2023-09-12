@@ -142,7 +142,7 @@ class StoreScraper:
         for listCount in range(totalLength):
           
           # 스크롤 맨끝까지 내렸을 경우
-          scrollFlag = True 
+          booCnt = 0 
 
           # 첫번째 시작 페이지를 제외한 
           if(listCount != 0):
@@ -152,16 +152,11 @@ class StoreScraper:
           # 스크롤 맨 처음으로 초기화 
           driver.execute_script("document.querySelector(\"#_pcmap_list_scroll_container\").scrollTop = 0")
 
-          # 스크롤 처리 
-          prev_scroll_ht = driver.execute_script("return document.querySelector(\"#_pcmap_list_scroll_container\").scrollHeight")
-          
-          # 맨 끝이 아닐 경우에만
-          # while scrollFlag:
-          #     driver.execute_script("document.querySelector(\"#_pcmap_list_scroll_container\").scrollTop += 1000")
-          #     next_scroll_ht = driver.execute_script("return document.querySelector(\"#_pcmap_list_scroll_container\").scrollHeight")
-          #     time.sleep(2)
-          #     if(prev_scroll_ht == next_scroll_ht):
-          #        scrollFlag = False
+          # 맨 끝으로 내리기
+          while booCnt < 10:
+              driver.execute_script("document.querySelector(\"#_pcmap_list_scroll_container\").scrollTop += 1000")
+              booCnt += 1
+              time.sleep(2)
 
           # 데이터 호출
           req = driver.page_source
@@ -224,8 +219,8 @@ class StoreScraper:
 
           print(f"# {listCount+1} :: 지역 :: {input_area} 유형 :: {input_tag} :: 크롤링완료")
           
-          wb.save("C:/Users/dlsdn_q9bmeyr/Desktop/최고의_자리_찾기/" + str(
-                dt_now.date()) +str(input_area)+"_"+str(listCount)+".xlsx")
+          wb.save("C:/Users/dlsdn_q9bmeyr/Desktop/최고의_자리_찾기/" + 
+                  str(dt_now.date()) +str(input_area)+"_"+str(input_tag)+"_"+str(listCount+1)+".xlsx")
           
         driver.close()
   
