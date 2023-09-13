@@ -251,7 +251,7 @@ def chkDriver():
 def excuteCraw():
   if(chkDriver()):
     try:
-      StoreScraper.get_stores("안양","초등")
+      StoreScraper.get_stores("의왕","아파트")
     except Exception as e :
       print(e)
 
