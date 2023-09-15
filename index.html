@@ -13,6 +13,8 @@
     <script lang="javascript" src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css" />
+    <script type="text/javascript"
+        src="//dapi.kakao.com/v2/maps/sdk.js?appkey=484364f6aa07199feda3b5ffec26ee8c&libraries=services"></script>
 
 </head>
 
@@ -24,6 +26,9 @@
         let map;
         // 현재의 브라우저 url 
         let cUrl = String(document.location.href);
+        let newMarker = [];
+        let newInfoWindow = [];
+        let newPlaceName = "";
 
         // geolocation api 가 지원되는 브라우저 인지 확인
 
@@ -36,6 +41,7 @@
                     console.log(pos.coords.latitude);
                     console.log(pos.coords.longitude);
                     let iconUrl = '/img/location-dot-solid.png';
+                    let flagIconUrl = '/img/location-pin-icon.png';
 
                     map = new naver.maps.Map('map', {
                         center: new naver.maps.LatLng(pos.coords.latitude, pos.coords.longitude),
@@ -44,6 +50,7 @@
 
                     if (!cUrl.includes("3000")) {
                         iconUrl = cUrl + iconUrl;
+                        flagIconUrl = cUrl + flagIconUrl;
                     }
 
                     let marker = new naver.maps.Marker({
@@ -56,6 +63,57 @@
                             anchor: new naver.maps.Point(25, 26)
                         }
                     });
+
+                    naver.maps.Event.addListener(map, 'click', function (e) {
+                        console.log(e.coord);
+
+                        marker = new naver.maps.Marker({
+                            position: new naver.maps.LatLng(e.coord.y, e.coord.x),
+                            map: map,
+                            icon: {
+                                url: flagIconUrl,
+                                size: new naver.maps.Size(50, 52),
+                                origin: new naver.maps.Point(0, 0),
+                                anchor: new naver.maps.Point(25, 26)
+                            }
+                        });
+
+                        newMarker.push(marker);
+
+                        let getAddressResponse =  getAddress(e.coord.y,e.coord.x);
+
+                        var contentString = [
+                            '<div class="iw_inner">',
+                            '<p>' + newPlaceName + '</p>',
+                            '<p> 위도 : ' + e.coord.y + '</p>',
+                            '<p> 경도 : ' + e.coord.x + '</p>',
+                            '</div>'
+                        ].join('');
+
+                        var infowindow = new naver.maps.InfoWindow({
+                            content: contentString,
+                            maxWidth: 140,
+                            backgroundColor: "#eee",
+                            borderColor: "black",
+                            borderWidth: 4,
+                            anchorSize: new naver.maps.Size(30, 30),
+                            anchorSkew: true,
+                            anchorColor: "#eee",
+                            pixelOffset: new naver.maps.Point(20, -20)
+                        })
+
+                        newInfoWindow.push(infowindow);
+
+                        for (let i = 0; i < newMarker.length; i++) {
+                            naver.maps.Event.addListener(newMarker[i], 'click', function (e) {
+
+                                newInfoWindow[i].open(map, newMarker[i]);
+                            });
+                        }
+
+                    })
+
+
 
                 },
                 function () { }
@@ -98,14 +156,14 @@
 
 
                 //Here excell.xlsx file is in current working directory
-                let response = await getData(xlsxUrl,iconUrl);
+                let response = await getData(xlsxUrl, iconUrl);
                 console.log(`${info} 마커 생성 완료`);
             }
         }
 
         fetchData()
 
-        function getData(xlsxUrl,iconUrl) {
+        function getData(xlsxUrl, iconUrl) {
 
             fetch(xlsxUrl).then(res => {
                 return res.arrayBuffer();
@@ -119,8 +177,6 @@
 
                     let areaCnt = 0;
                     let polygonArr = [];
-                    let markerArr = [];
-                    let markerInfoArr = [];
                     let rawObj = XLSX.utils.sheet_to_row_object_array(wb.Sheets[sheet]);
 
                     rawObj.map(obj => {
@@ -159,9 +215,6 @@
                             anchorColor: "#eee",
                             pixelOffset: new naver.maps.Point(20, -20)
                         })
-
-                        markerArr.push(marker);
-                        markerInfoArr.push(infowindow);
 
                         naver.maps.Event.addListener(marker, 'click', function (e) {
                             if (infowindow._disabled) {
@@ -297,6 +350,36 @@
             })
 
             return true;
+        }
+
+
+        async function getAddress(y, x) {
+
+            let result = await awaitDate(y,x);
+            return result;
+        }
+
+        function awaitDate(y, x){
+
+            let geocoder = new kakao.maps.services.Geocoder();
+            let coord = new kakao.maps.LatLng(y, x);
+            let callback = function (result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+
+                    // if(Object.keys(result[0]['road_address']).includes('address_name')){
+                    //     newPlaceName += result[0]['road_address'].address_name;
+                    // }
+                    // if(Object.keys(result[0]['road_address']).includes('building_name')){
+                    //     newPlaceName += result[0]['road_address'].building_name;
+                    // }
+                    newPlaceName = result[0]['address'].address_name
+                    console.log("클릭한 주소 " + newPlaceName);
+                }
+            }
+
+            geocoder.coord2Address(coord.getLng(), coord.getLat(), callback);
+
+            return newPlaceName;
         }
     </script>
 </body>
