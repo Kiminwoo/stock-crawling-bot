@@ -49,3 +49,21 @@
 .suwon{
     color: #000000;
 }
+
+@media all and (max-width: 768px) {
+    .info_container{
+        width: 170%; 
+    }
+}
+
+@media all and (max-width: 500px) {
+    .info_container{
+        width: 200%; 
+    }
+}
+
+@media all and (max-width: 368px) {
+    .info_container{
+        width: 300%; 
+    }
+}
