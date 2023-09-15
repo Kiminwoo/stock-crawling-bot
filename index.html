@@ -28,8 +28,8 @@
         let cUrl = String(document.location.href);
         let newMarker = [];
         let newInfoWindow = [];
-        let newPlaceName = "";
-
+        // let newPlaceName = "";
+        // let name = "";
         // geolocation api 가 지원되는 브라우저 인지 확인
 
         // 현재 위치 가져오기
@@ -80,36 +80,7 @@
 
                         newMarker.push(marker);
 
-                        let getAddressResponse =  getAddress(e.coord.y,e.coord.x);
-
-                        var contentString = [
-                            '<div class="iw_inner">',
-                            '<p>' + newPlaceName + '</p>',
-                            '<p> 위도 : ' + e.coord.y + '</p>',
-                            '<p> 경도 : ' + e.coord.x + '</p>',
-                            '</div>'
-                        ].join('');
-
-                        var infowindow = new naver.maps.InfoWindow({
-                            content: contentString,
-                            maxWidth: 140,
-                            backgroundColor: "#eee",
-                            borderColor: "black",
-                            borderWidth: 4,
-                            anchorSize: new naver.maps.Size(30, 30),
-                            anchorSkew: true,
-                            anchorColor: "#eee",
-                            pixelOffset: new naver.maps.Point(20, -20)
-                        })
-
-                        newInfoWindow.push(infowindow);
-
-                        for (let i = 0; i < newMarker.length; i++) {
-                            naver.maps.Event.addListener(newMarker[i], 'click', function (e) {
-
-                                newInfoWindow[i].open(map, newMarker[i]);
-                            });
-                        }
+                        getAddress(e.coord.y, e.coord.x);
 
                     })
 
@@ -355,31 +326,53 @@
 
         async function getAddress(y, x) {
 
-            let result = await awaitDate(y,x);
+            let result = await awaitDate(y, x);
             return result;
         }
 
-        function awaitDate(y, x){
-
+        function awaitDate(y, x) {
             let geocoder = new kakao.maps.services.Geocoder();
             let coord = new kakao.maps.LatLng(y, x);
             let callback = function (result, status) {
                 if (status === kakao.maps.services.Status.OK) {
 
-                    // if(Object.keys(result[0]['road_address']).includes('address_name')){
-                    //     newPlaceName += result[0]['road_address'].address_name;
-                    // }
-                    // if(Object.keys(result[0]['road_address']).includes('building_name')){
-                    //     newPlaceName += result[0]['road_address'].building_name;
-                    // }
-                    newPlaceName = result[0]['address'].address_name
-                    console.log("클릭한 주소 " + newPlaceName);
+                    let name = result[0]['address'].address_name
+
+                    var contentString = [
+                        '<div class="iw_inner">',
+                        '<p >'+name+'</p>',
+                        '<p> 위도 : ' + y + '</p>',
+                        '<p> 경도 : ' + x + '</p>',
+                        '</div>'
+                    ].join('');
+
+                    var infowindow = new naver.maps.InfoWindow({
+                        content: contentString,
+                        maxWidth: 140,
+                        backgroundColor: "#eee",
+                        borderColor: "black",
+                        borderWidth: 4,
+                        anchorSize: new naver.maps.Size(30, 30),
+                        anchorSkew: true,
+                        anchorColor: "#eee",
+                        pixelOffset: new naver.maps.Point(20, -20)
+                    })
+
+                    newInfoWindow.push(infowindow);
+
+                    for (let i = 0; i < newMarker.length; i++) {
+                        naver.maps.Event.addListener(newMarker[i], 'click', function (e) {
+                            newInfoWindow[i].open(map, newMarker[i]);
+                        });
+                    }
+
+                    console.log("클릭한 주소 " + name);
                 }
             }
 
             geocoder.coord2Address(coord.getLng(), coord.getLat(), callback);
 
-            return newPlaceName;
+            return true;
         }
     </script>
 </body>
