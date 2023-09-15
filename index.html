@@ -24,13 +24,36 @@
     <script>
 
         let map;
+
         // 현재의 브라우저 url 
         let cUrl = String(document.location.href);
         let newMarker = [];
         let newInfoWindow = [];
-        // let newPlaceName = "";
-        // let name = "";
-        // geolocation api 가 지원되는 브라우저 인지 확인
+
+        var mapOptions = {
+            mapTypeControl: true,
+            mapTypeControlOptions: {
+                style: naver.maps.MapTypeControlStyle.BUTTON,
+                position: naver.maps.Position.TOP_RIGHT
+            },
+            zoomControl: true,
+            zoomControlOptions: {
+                style: naver.maps.ZoomControlStyle.SMALL,
+                position: naver.maps.Position.TOP_RIGHT
+            },
+            scaleControl: true,
+            scaleControlOptions: {
+                position: naver.maps.Position.RIGHT_CENTER
+            },
+            logoControl: true,
+            logoControlOptions: {
+                position: naver.maps.Position.TOP_LEFT
+            },
+            mapDataControl: true,
+            mapDataControlOptions: {
+                position: naver.maps.Position.BOTTOM_LEFT
+            }
+        };
 
         // 현재 위치 가져오기
         if ("geolocation" in navigator) {
@@ -42,6 +65,8 @@
                     console.log(pos.coords.longitude);
                     let iconUrl = '/img/location-dot-solid.png';
                     let flagIconUrl = '/img/location-pin-icon.png';
+
+                    // map = new naver.maps.Map('map',mapOptions );
 
                     map = new naver.maps.Map('map', {
                         center: new naver.maps.LatLng(pos.coords.latitude, pos.coords.longitude),
@@ -75,17 +100,13 @@
                                 size: new naver.maps.Size(50, 52),
                                 origin: new naver.maps.Point(0, 0),
                                 anchor: new naver.maps.Point(25, 26)
-                            }
+                            }, 
+                            animation: naver.maps.Animation.BOUNCE
                         });
 
                         newMarker.push(marker);
-
                         getAddress(e.coord.y, e.coord.x);
-
                     })
-
-
-
                 },
                 function () { }
             );
@@ -340,7 +361,7 @@
 
                     var contentString = [
                         '<div class="iw_inner">',
-                        '<p >'+name+'</p>',
+                        '<p >' + name + '</p>',
                         '<p> 위도 : ' + y + '</p>',
                         '<p> 경도 : ' + x + '</p>',
                         '</div>'
