@@ -47,4 +47,4 @@ for loop in range(len(wb.sheetnames)):
                 count += 1
                 print(f'error : {count}')
 
-wb.save(filename='info_xlsx/지역별_태권도_정보.xlsx')
+wb.save(filename='info_xlsx/지역별_ `태권도_정보.xlsx')
