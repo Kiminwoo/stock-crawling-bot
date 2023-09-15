@@ -62,28 +62,51 @@
             );
         }
 
-        function fetchData() {
+        async function fetchData() {
+            let infoArr = ["지역별_아파트_정보", "지역별_초등학교_정보", "지역별_태권도_정보"]
+            let iconUrl;
+            let xlsxUrl;
+            let response;
 
-            let iconUrl = '/img/building-solid-icon.png';
-            let xlsxUrl = '/info_xlsx/지역별_아파트_정보.xlsx';
+            for (let info of infoArr) {
 
-            if (!cUrl.includes("3000")) {
-                iconUrl = cUrl + iconUrl;
-                xlsxUrl = cUrl + xlsxUrl;
-            }
-
-            var markerOptions = {
-                map: map,
-                icon: {
-                    url: iconUrl,
-                    size: new naver.maps.Size(50, 52),
-                    origin: new naver.maps.Point(0, 0),
-                    anchor: new naver.maps.Point(25, 26)
+                if (info == "지역별_아파트_정보") {
+                    iconUrl = '/img/building-solid-icon.png';
+                    xlsxUrl = '/info_xlsx/지역별_아파트_정보.xlsx';
+                } else if (info == "지역별_초등학교_정보") {
+                    iconUrl = '/img/school-solid-icon.png';
+                    xlsxUrl = '/info_xlsx/지역별_초등학교_정보.xlsx';
+                } else {
+                    iconUrl = '/img/taekwondo-icon.png';
+                    xlsxUrl = '/info_xlsx/지역별_태권도_정보.xlsx';
                 }
-            };
+
+                if (!cUrl.includes("3000")) {
+                    iconUrl = cUrl + iconUrl;
+                    xlsxUrl = cUrl + xlsxUrl;
+                }
+
+                var markerOptions = {
+                    map: map,
+                    icon: {
+                        url: iconUrl,
+                        size: new naver.maps.Size(50, 52),
+                        origin: new naver.maps.Point(0, 0),
+                        anchor: new naver.maps.Point(25, 26)
+                    }
+                };
 
 
-            //Here excell.xlsx file is in current working directory
+                //Here excell.xlsx file is in current working directory
+                let response = await getData(xlsxUrl,iconUrl);
+                console.log(`${info} 마커 생성 완료`);
+            }
+        }
+
+        fetchData()
+
+        function getData(xlsxUrl,iconUrl) {
+
             fetch(xlsxUrl).then(res => {
                 return res.arrayBuffer();
             }).then(res => {
@@ -94,177 +117,187 @@
 
                 wb.SheetNames.forEach(sheet => {
 
-                    if (sheet == "수원") {
-                        let areaCnt = 0;
-                        let polygonArr = [];
-                        let markerArr = [];
-                        let markerInfoArr = [];
-                        let rawObj = XLSX.utils.sheet_to_row_object_array(wb.Sheets[sheet]);
+                    let areaCnt = 0;
+                    let polygonArr = [];
+                    let markerArr = [];
+                    let markerInfoArr = [];
+                    let rawObj = XLSX.utils.sheet_to_row_object_array(wb.Sheets[sheet]);
 
-                        rawObj.map(obj => {
+                    rawObj.map(obj => {
 
-                            let marker = new naver.maps.Marker({
-                                position: new naver.maps.LatLng(obj.y, obj.x),
-                                map: map,
-                                icon: {
-
-                                    url: iconUrl,
-                                    size: new naver.maps.Size(22, 30),
-                                    origin: new naver.maps.Point(0, 0),
-                                    anchor: new naver.maps.Point(11, 35)
-
-                                }
-                            });
-
-                            var contentString = [
-                                '<div class="iw_inner">',
-                                '   <h3>' + obj.사업장_유형 + '</h3>',
-                                '<p>' + obj.사업장_이름 + '</p>',
-                                '<p>' + obj.사업장_주소 + '</p>',
-                                '<p> 위도 : ' + obj.y + '</p>',
-                                '<p> 경도 : ' + obj.x + '</p>',
-                                '</div>'
-                            ].join('');
-
-                            var infowindow = new naver.maps.InfoWindow({
-                                content: contentString,
-                                maxWidth: 140,
-                                backgroundColor: "#eee",
-                                borderColor: "black",
-                                borderWidth: 4,
-                                anchorSize: new naver.maps.Size(30, 30),
-                                anchorSkew: true,
-                                anchorColor: "#eee",
-                                pixelOffset: new naver.maps.Point(20, -20)
-                            })
-
-                            markerArr.push(marker);
-                            markerInfoArr.push(infowindow);
-
-                            naver.maps.Event.addListener(marker, 'click', function (e) {
-                                if (infowindow._disabled) {
-                                    infowindow.close();
-                                } else {
-                                    infowindow.open(map, marker);
-                                }
-                            });
-                        });
-
-                        var polygon = new naver.maps.Polygon({
+                        let marker = new naver.maps.Marker({
+                            position: new naver.maps.LatLng(obj.y, obj.x),
                             map: map,
-                            paths: [
-                                [
-                                    // 안양시 
-                                    new naver.maps.LatLng(37.4332284, 126.9012703),
-                                    new naver.maps.LatLng(37.4303831, 126.9005160),
-                                    new naver.maps.LatLng(37.4043055, 126.8925474),
-                                    new naver.maps.LatLng(37.3928491, 126.9027448),
-                                    new naver.maps.LatLng(37.3852157, 126.9021946),
-                                    new naver.maps.LatLng(37.3804410, 126.9298263),
-                                    new naver.maps.LatLng(37.3624756, 126.9640223),
-                                    new naver.maps.LatLng(37.3983876, 126.9793288),
-                                    new naver.maps.LatLng(37.4115493, 126.9733344),
-                                    new naver.maps.LatLng(37.4131897, 126.9700628),
-                                    new naver.maps.LatLng(37.4337563, 126.9062093),
-                                    new naver.maps.LatLng(37.4334513, 126.9045375)
+                            icon: {
 
+                                url: iconUrl,
+                                size: new naver.maps.Size(22, 30),
+                                origin: new naver.maps.Point(0, 0),
+                                anchor: new naver.maps.Point(11, 35)
 
-
-                                ]
-                            ],
-                            fillColor: '#A9D0F5',
-                            fillOpacity: 0.3,
-                            strokeColor: '#A9D0F5',
-                            strokeOpacity: 0.6,
-                            strokeWeight: 3
+                            }
                         });
 
+                        var contentString = [
+                            '<div class="iw_inner">',
+                            '   <h3>' + obj.사업장_유형 + '</h3>',
+                            '<p>' + obj.사업장_이름 + '</p>',
+                            '<p>' + obj.사업장_주소 + '</p>',
+                            '<p> 위도 : ' + obj.y + '</p>',
+                            '<p> 경도 : ' + obj.x + '</p>',
+                            '</div>'
+                        ].join('');
 
-                        polygon = new naver.maps.Polygon({
-                            map: map,
-                            paths: [
-                                [
-                                    // 의왕시 
-                                    new naver.maps.LatLng(37.4034146, 126.9876625),
-                                    new naver.maps.LatLng(37.4033517, 126.9860448),
-                                    new naver.maps.LatLng(37.3880359, 126.9748684),
-                                    new naver.maps.LatLng(37.3768826, 126.9703020),
-                                    new naver.maps.LatLng(37.3653806, 126.9646268),
-                                    new naver.maps.LatLng(37.3475845, 126.9699956),
-                                    new naver.maps.LatLng(37.3207375, 126.9421842),
-                                    new naver.maps.LatLng(37.3153750, 126.9539125),
-                                    new naver.maps.LatLng(37.3189679, 126.9637118),
-                                    new naver.maps.LatLng(37.3467071, 126.9807875),
-                                    new naver.maps.LatLng(37.3740115, 127.0141822),
-                                    new naver.maps.LatLng(37.3937604, 127.0008678)
-                                ]
-                            ],
-                            fillColor: '#81F781',
-                            fillOpacity: 0.3,
-                            strokeColor: '#81F781',
-                            strokeOpacity: 0.6,
-                            strokeWeight: 3
+                        var infowindow = new naver.maps.InfoWindow({
+                            content: contentString,
+                            maxWidth: 140,
+                            backgroundColor: "#eee",
+                            borderColor: "black",
+                            borderWidth: 4,
+                            anchorSize: new naver.maps.Size(30, 30),
+                            anchorSkew: true,
+                            anchorColor: "#eee",
+                            pixelOffset: new naver.maps.Point(20, -20)
+                        })
+
+                        markerArr.push(marker);
+                        markerInfoArr.push(infowindow);
+
+                        naver.maps.Event.addListener(marker, 'click', function (e) {
+                            if (infowindow._disabled) {
+                                infowindow.close();
+                            } else {
+                                infowindow.open(map, marker);
+                            }
                         });
+                    });
+
+                    var polygon = new naver.maps.Polygon({
+                        map: map,
+                        paths: [
+                            [
+                                // 안양시 
+                                new naver.maps.LatLng(37.4332284, 126.9012703),
+                                new naver.maps.LatLng(37.4303831, 126.9005160),
+                                new naver.maps.LatLng(37.4043055, 126.8925474),
+                                new naver.maps.LatLng(37.3928491, 126.9027448),
+                                new naver.maps.LatLng(37.3852157, 126.9021946),
+                                new naver.maps.LatLng(37.3804410, 126.9298263),
+                                new naver.maps.LatLng(37.3624756, 126.9640223),
+                                new naver.maps.LatLng(37.3983876, 126.9793288),
+                                new naver.maps.LatLng(37.4115493, 126.9733344),
+                                new naver.maps.LatLng(37.4131897, 126.9700628),
+                                new naver.maps.LatLng(37.4337563, 126.9062093),
+                                new naver.maps.LatLng(37.4334513, 126.9045375)
 
 
-                        polygon = new naver.maps.Polygon({
-                            map: map,
-                            paths: [
-                                [
-                                    // 군포시 
-                                    new naver.maps.LatLng(37.3758510, 126.9390880),
-                                    new naver.maps.LatLng(37.3748056, 126.9319471),
-                                    new naver.maps.LatLng(37.3639874, 126.9216863),
-                                    new naver.maps.LatLng(37.3558368, 126.9168503),
-                                    new naver.maps.LatLng(37.3466488, 126.9232968),
-                                    new naver.maps.LatLng(37.3298881, 126.9079885),
-                                    new naver.maps.LatLng(37.3287238, 126.9082366),
-                                    new naver.maps.LatLng(37.3173059, 126.9175915),
-                                    new naver.maps.LatLng(37.3137332, 126.9240854),
-                                    new naver.maps.LatLng(37.3136847, 126.9261839),
-                                    new naver.maps.LatLng(37.3231484, 126.9450822),
-                                    new naver.maps.LatLng(37.3444218, 126.9573025),
-                                    new naver.maps.LatLng(37.3478283, 126.9576338),
-                                    new naver.maps.LatLng(37.3726348, 126.9445261)
 
-                                ]
-                            ],
-                            fillColor: '#F3E2A9',
-                            fillOpacity: 0.3,
-                            strokeColor: '#F3E2A9',
-                            strokeOpacity: 0.6,
-                            strokeWeight: 3
-                        });
+                            ]
+                        ],
+                        // fillColor: '#E0F2F7',
+                        // fillOpacity: 0.1,
+
+                        strokeColor: '#000000',
+                        strokeOpacity: 0.6,
+                        strokeWeight: 3
+                    });
 
 
-                        polygon = new naver.maps.Polygon({
-                            map: map,
-                            paths: [
-                                [
-                                    // 수원시 
-                                    new naver.maps.LatLng(37.3139397, 126.9815439),
-                                    new naver.maps.LatLng(37.3059033, 126.9686741),
-                                    new naver.maps.LatLng(37.3059033, 126.9686741)
+                    polygon = new naver.maps.Polygon({
+                        map: map,
+                        paths: [
+                            [
+                                // 의왕시 
+                                new naver.maps.LatLng(37.4034146, 126.9876625),
+                                new naver.maps.LatLng(37.4033517, 126.9860448),
+                                new naver.maps.LatLng(37.3880359, 126.9748684),
+                                new naver.maps.LatLng(37.3768826, 126.9703020),
+                                new naver.maps.LatLng(37.3653806, 126.9646268),
+                                new naver.maps.LatLng(37.3475845, 126.9699956),
+                                new naver.maps.LatLng(37.3207375, 126.9421842),
+                                new naver.maps.LatLng(37.3153750, 126.9539125),
+                                new naver.maps.LatLng(37.3189679, 126.9637118),
+                                new naver.maps.LatLng(37.3467071, 126.9807875),
+                                new naver.maps.LatLng(37.3740115, 127.0141822),
+                                new naver.maps.LatLng(37.3937604, 127.0008678)
+                            ]
+                        ],
+                        // fillColor: '#E0F8E6',
+                        // fillOpacity: 0.3,
+                        strokeColor: '#000000',
+                        strokeOpacity: 0.6,
+                        strokeWeight: 3
+                    });
 
 
-                                ]
-                            ],
-                            fillColor: '#F3E2A9',
-                            fillOpacity: 0.3,
-                            strokeColor: '#F3E2A9',
-                            strokeOpacity: 0.6,
-                            strokeWeight: 3
-                        });
+                    polygon = new naver.maps.Polygon({
+                        map: map,
+                        paths: [
+                            [
+                                // 군포시 
+                                new naver.maps.LatLng(37.3758510, 126.9390880),
+                                new naver.maps.LatLng(37.3748056, 126.9319471),
+                                new naver.maps.LatLng(37.3639874, 126.9216863),
+                                new naver.maps.LatLng(37.3558368, 126.9168503),
+                                new naver.maps.LatLng(37.3466488, 126.9232968),
+                                new naver.maps.LatLng(37.3298881, 126.9079885),
+                                new naver.maps.LatLng(37.3287238, 126.9082366),
+                                new naver.maps.LatLng(37.3173059, 126.9175915),
+                                new naver.maps.LatLng(37.3137332, 126.9240854),
+                                new naver.maps.LatLng(37.3136847, 126.9261839),
+                                new naver.maps.LatLng(37.3231484, 126.9450822),
+                                new naver.maps.LatLng(37.3444218, 126.9573025),
+                                new naver.maps.LatLng(37.3478283, 126.9576338),
+                                new naver.maps.LatLng(37.3726348, 126.9445261)
 
-                        areaCnt += 1
-                    }
+                            ]
+                        ],
+                        // fillColor: '#F7F8E0',
+                        // fillOpacity: 0.3,
+                        strokeColor: '#000000',
+                        strokeOpacity: 0.6,
+                        strokeWeight: 3
+                    });
+
+
+                    polygon = new naver.maps.Polygon({
+                        map: map,
+                        paths: [
+                            [
+                                // 수원시 
+                                new naver.maps.LatLng(37.3139397, 126.9815439),
+                                new naver.maps.LatLng(37.3059033, 126.9686741),
+                                new naver.maps.LatLng(37.3005864, 126.9534944),
+                                new naver.maps.LatLng(37.2928498, 126.9391679),
+                                new naver.maps.LatLng(37.2759027, 126.9381953),
+                                new naver.maps.LatLng(37.2701835, 126.9369931),
+                                new naver.maps.LatLng(37.2412507, 126.9641523),
+                                new naver.maps.LatLng(37.2358781, 127.0287634),
+                                new naver.maps.LatLng(37.2343312, 127.0538296),
+                                new naver.maps.LatLng(37.2550161, 127.0789786),
+                                new naver.maps.LatLng(37.2679833, 127.0837750),
+                                new naver.maps.LatLng(37.2953851, 127.0836087),
+                                new naver.maps.LatLng(37.3083278, 127.0495331),
+                                new naver.maps.LatLng(37.3096220, 127.0448504),
+                                new naver.maps.LatLng(37.3096849, 127.0380880)
+
+                            ]
+                        ],
+                        // fillColor: '#F8E0E0',
+                        // fillOpacity: 0.3,
+                        strokeColor: '#000000',
+                        strokeOpacity: 0.6,
+                        strokeWeight: 3
+                    });
+
+                    areaCnt += 1
+
 
                 });
             })
+
+            return true;
         }
-
-        fetchData()
-
     </script>
 </body>
 
