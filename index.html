@@ -138,23 +138,6 @@
             let response;
 
             for (let info of infoArr) {
-
-                if (info == "지역별_아파트_정보") {
-                    iconUrl = '/img/building-solid-icon.png';
-                    xlsxUrl = '/info_xlsx/지역별_아파트_정보.xlsx';
-                } else if (info == "지역별_초등학교_정보") {
-                    iconUrl = '/img/school-solid-icon.png';
-                    xlsxUrl = '/info_xlsx/지역별_초등학교_정보.xlsx';
-                } else {
-                    iconUrl = '/img/taekwondo-icon.png';
-                    xlsxUrl = '/info_xlsx/지역별_태권도_정보.xlsx';
-                }
-
-                if (!cUrl.includes("3000")) {
-                    iconUrl = cUrl + iconUrl;
-                    xlsxUrl = cUrl + xlsxUrl;
-                }
-
                 var markerOptions = {
                     map: map,
                     icon: {
@@ -165,16 +148,15 @@
                     }
                 };
 
-
                 //Here excell.xlsx file is in current working directory
-                let response = await getData(xlsxUrl, iconUrl);
+                let response = await getData(info, '/info_xlsx/'+info+'.xlsx');
                 console.log(`${info} 마커 생성 완료`);
             }
         }
 
         fetchData()
 
-        function getData(xlsxUrl, iconUrl) {
+        function getData(info,xlsxUrl) {
 
             fetch(xlsxUrl).then(res => {
                 return res.arrayBuffer();
@@ -198,15 +180,38 @@
                     }
 
                     rawObj.map(obj => {
+                        let iconUrl;
+
+                        if (info == "지역별_아파트_정보") {
+                            iconUrl = '/img/building-solid-icon.png';
+                        } else if (info == "지역별_초등학교_정보") {
+                            iconUrl = '/img/school-solid-icon.png';
+                        } else {
+                            iconUrl = '/img/taekwondo-icon.png';
+                        }
+
+                        if (obj.사업장_브랜드 != undefined) {
+                            iconUrl = '/img/' + obj.사업장_브랜드 + '.png';
+                            markerIconSize = new naver.maps.Size(60, 60);
+
+                            if (obj.사업장_브랜드 == '서희스타힐스') {
+                                markerIconSize = new naver.maps.Size(60, 78);
+                            }
+                        }
+
+
+                        if (!cUrl.includes("3000")) {
+                            iconUrl = cUrl + iconUrl;
+                            xlsxUrl = cUrl + xlsxUrl;
+                        }
 
                         let marker = new naver.maps.Marker({
                             position: new naver.maps.LatLng(obj.y, obj.x),
                             map: map,
-                            
-                            icon: {
 
-                                url: obj.사업장_브랜드 != undefined ? '/img/' + obj.사업장_브랜드 + '.png' : iconUrl,
-                                size: obj.사업장_브랜드 != undefined ? ( obj.사업장_브랜드 == '서희스타힐스' ?  new naver.maps.Size(60, 78) :  new naver.maps.Size(60, 60) )  :  markerIconSize,
+                            icon: {
+                                url: iconUrl,
+                                size: markerIconSize,
                                 origin: new naver.maps.Point(0, 0),
                                 anchor: new naver.maps.Point(11, 35)
 
