@@ -133,30 +133,22 @@
 
         async function fetchData() {
             let infoArr = ["지역별_아파트_정보", "지역별_초등학교_정보", "지역별_태권도_정보"]
-            let iconUrl;
-            let xlsxUrl;
             let response;
 
             for (let info of infoArr) {
-                var markerOptions = {
-                    map: map,
-                    icon: {
-                        url: iconUrl,
-                        size: new naver.maps.Size(50, 52),
-                        origin: new naver.maps.Point(0, 0),
-                        anchor: new naver.maps.Point(25, 26)
-                    }
-                };
 
                 //Here excell.xlsx file is in current working directory
-                let response = await getData(info, '/info_xlsx/'+info+'.xlsx');
+                let response = await getData(info, 
+                    !cUrl.includes("3000") 
+                        ? cUrl+ '/info_xlsx/' + info + '.xlsx' 
+                            : '/info_xlsx/' + info + '.xlsx');
                 console.log(`${info} 마커 생성 완료`);
             }
         }
 
         fetchData()
 
-        function getData(info,xlsxUrl) {
+        function getData(info, xlsxUrl) {
 
             fetch(xlsxUrl).then(res => {
                 return res.arrayBuffer();
